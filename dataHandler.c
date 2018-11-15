@@ -1,13 +1,6 @@
-#include "cubesatConstants.h"
 #include "dataHandler.h"
-#include <SoftwareSerial.h>
+#include <stdio.h>
 #include <stdint.h>
-
-SoftwareSerial mySerial(10, 11); // RX, TX
-
-//----------------------------
-
-
 /**
  * @brief This method takes in the raw Sensor Data and packs it into
  *       a format that can be used for internal communication or
@@ -25,42 +18,14 @@ void dataHandlerPack(dataPacket* packet,
   packet->senderID = senderID;
   packet->receiverID= receiverID;
   packet->type_sID= type_sID;
-  packet->padding=0;
+  packet->padding=3;
   //get timestamp from system uptime.
-  packet->timestamp = 1;//HAL_GetTick(); -- Discuss
+  packet->timestamp = 0x22222222;//HAL_GetTick(); -- Discuss
   packet->data = data;
 
   //calculate the CRC checksum
   packet->chksum=xDataPacketCRCSum(packet);
   //return localDataPacket;
-}
-
-uint32_t reg32 = 0xffffffff;     // Schieberegister
- 
-uint32_t crc32_bytecalc(uint8_t in)
-{
-int i;
-uint32_t polynom = 0xEDB88320;   // Generatorpolynom
-
-    for (i=0; i<8; ++i)
-  {
-        if ((reg32&1) != (in&1))
-             reg32 = (reg32>>1)^polynom; 
-        else 
-             reg32 >>= 1;
-    in  >>= 1;
-  }
-  return reg32 ^ 0xffffffff;      // inverses Ergebnis, MSB zuerst
-}
-
-uint32_t crc32(uint32_t *data, int len)
-{
-int i;
-
-  for(i=0; i<len; i++) {
-    crc32_bytecalc(data[i]);    // Berechne fuer jeweils 8 Bit der Nachricht
-  }
-  return reg32 ^ 0xffffffff;
 }
 
 /**
@@ -69,7 +34,7 @@ int i;
  * @return returns the 32 bit CRC checksum
 */
 uint32_t xDataPacketCRCSum(dataPacket *dataPacket) {
-  //3x32 bit buffer for calucalting the CRC checksum
+  //32 bit buffer for calucalting the CRC checksum
   uint32_t buffer[3];
   //for the first 32bit bufferelement combining 4 8bit elements together:
   //    senderID, receiverID, type and 8bit of zeros
@@ -83,7 +48,7 @@ uint32_t xDataPacketCRCSum(dataPacket *dataPacket) {
   buffer[1] = dataPacket->timestamp;
   buffer[2] = dataPacket->data;
   //calculate the 32 bit CRC checksum
-  return crc32(buffer,3);//0xAAAAAAAA;//HAL_CRC_Calculate(&hcrc, buffer, 3);
+  return 0xAAAAAAAA;//HAL_CRC_Calculate(&hcrc, buffer, 3);
 
 }
 
@@ -98,46 +63,4 @@ uint8_t xCreateType(packetType packetType, uint8_t sensorID){
   uint8_t pT = packetType << 7; //shift bit of packetType 7 times to the left so that it is the MSB
   pT = sensorID || pT;      //MSB from packetType, all other bits from sensorID
   return pT;
-}
-//----------------------------
-
-void uart_send(byte* content, int len){
-   mySerial.write(content,len);
-}
-
-void uart_send_dataPacket(dataPacket* package){
-  uart_send((byte*) package, sizeof(dataPacket));
-}
-
-byte i = 0;
-
-dataPacket globalPacket;
-
-dataPacket* globalPacketRef = &globalPacket;
-
-void setup() {
-  
-  for(uint8_t  j = 0;j < subIDLength;j++){
-    subID[j] = j;    
-  }
-  
-  Serial.begin(9600);
-  dataHandlerPack(globalPacketRef,subID[obcID],subID[powerID],0x2A, 0);
-
-  mySerial.begin(9600);
-//  Serial.println(obcID);
-//  Serial.println(communicationID);
-// Serial.println(powerID);
-}
-
-void loop() { // run over and over
-
-//byte* test = (byte*) (globalPacketRef);
-
-//dataPacket* te = (dataPacket*) test;
-//uart_send_dataPacket(te);
-uart_send_dataPacket(globalPacketRef);
-
- 
-  delay(1000);
 }

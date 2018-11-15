@@ -49,19 +49,19 @@ typedef enum{
 	dataPacketType = 1     /** 1 */
 }packetType;
 
-const int subIDLength = 3;
+#define subIDLength  3
 
-byte subID[subIDLength];//length of the enum -- somehow automise...
+uint8_t  subID[subIDLength];//length of the enum -- somehow automise...
 
 /**
  * This structure represents the DataPackets send over the Bus.
  */
 typedef struct {
   /** The subsystemID of the Sender */
-  byte senderID;
+  uint8_t  senderID;
 
   /** The subsystemID of the Receiver */
-  byte receiverID;
+  uint8_t  receiverID;
 
   /** The Type of the Packet, can be either Command or Data. Lower 7 bits contain Sensor ID */
   uint8_t type_sID;

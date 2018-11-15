@@ -79,7 +79,7 @@ typedef struct {
 	uint32_t chksum;
 } dataPacket;
 
-const int dataPacketSize = sizeof(dataPacket);
+
 /**
  * Enum containing all the Sensor IDs
  */
