@@ -80,8 +80,6 @@ typedef struct {
 } dataPacket;
 
 
-#define dataPacketSize sizeof(dataPacket)
-
 /**
  * Enum containing all the Sensor IDs
  */
